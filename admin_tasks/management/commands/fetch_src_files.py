@@ -1,11 +1,11 @@
-from django.core.management.base import BaseCommand
-from admin_tasks.models import DataProcessingNode, FileExtension, FileGroup
 import getpass
-import paramiko
-from admin_tasks.functions import sftp_discover_subdirectories
-
 import os
 
+import paramiko
+from django.core.management.base import BaseCommand
+
+from admin_tasks.functions import sftp_discover_subdirectories
+from admin_tasks.models import DataProcessingNode, FileExtension
 from thesis_django.settings import RESOURCES_DIRECTORY
 
 
@@ -77,7 +77,6 @@ def fetch_src_files(host, username, password, directory, *file_names, callback=N
                               file_names]
                 total_transmission_size = sum(file_sizes)
                 for i in range(len(file_names)):
-                    # completed = 0 if i ==0 else sum(file_sizes[:i])
                     sftp_handle.get(selected_directory + "/" + file_names[i],
                                     os.path.join(RESOURCES_DIRECTORY, file_names[i]),
                                     callback=lambda c, t: callback(c + sum(file_sizes[:i]), total_transmission_size,

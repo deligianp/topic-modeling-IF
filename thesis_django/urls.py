@@ -24,6 +24,5 @@ urlpatterns = [
     # path("accounts/", include("django.contrib.auth.urls")),
     path('accounts/login/', auth_views.LoginView.as_view()),
     path("admin-tasks/", include(admin_tasks_urls)),
-    re_path(r"^celery-progress/", include("celery_progress.urls")),
     path('admin/', admin.site.urls),
 ]

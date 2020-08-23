@@ -1,28 +1,21 @@
-from django.http import HttpResponse
-from django.shortcuts import render
+import os
+
 from django.contrib.admin.views.decorators import staff_member_required
-from django.conf import settings
+from django.core.cache import cache
+from django.db import IntegrityError, DataError
 from django.http import JsonResponse
-from celery.result import AsyncResult
-from admin_tasks import forms as atforms
-from thesis_ui import models as thesis_models
+from django.shortcuts import redirect
+from django.shortcuts import render
 from django.utils.text import slugify
+from django_celery_results.models import TaskResult
+
+from admin_tasks import forms as atforms
+from admin_tasks import functions
+from admin_tasks import models as atmodels
 from admin_tasks import tasks
 from admin_tasks.celery import app as app_worker
-from django.shortcuts import redirect
-from django.db import IntegrityError, DataError
-from celery_progress.backend import Progress
-from celery.backends.amqp import BacklogLimitExceeded
-from .tasks import fetch_src_files
-import json
-import copy
-import time
-import os
-from admin_tasks import models as atmodels
-from django.core.cache import cache
-from django_celery_results.models import TaskResult
-from admin_tasks import functions
 from admin_tasks.management.commands import lda_model, data_processing_node, file_group
+from thesis_ui import models as thesis_models
 
 inspector = app_worker.control.inspect()
 

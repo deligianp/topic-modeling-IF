@@ -1,0 +1,82 @@
+[
+  {
+    "model": "admin_tasks.filegroup",
+    "pk": 1,
+    "fields": {
+      "name": "lda",
+      "description": "Lda model files"
+    }
+  },
+  {
+    "model": "admin_tasks.filegroup",
+    "pk": 2,
+    "fields": {
+      "name": "nonstemmed",
+      "description": "Prestemmed map files"
+    }
+  },
+  {
+    "model": "admin_tasks.filegroup",
+    "pk": 3,
+    "fields": {
+      "name": "comparison",
+      "description": "Comparison files"
+    }
+  },
+  {
+    "model": "admin_tasks.fileextension",
+    "pk": 1,
+    "fields": {
+      "extension": "lda",
+      "file_group": 1
+    }
+  },
+  {
+    "model": "admin_tasks.fileextension",
+    "pk": 2,
+    "fields": {
+      "extension": "lda.expElogbeta.npy",
+      "file_group": 1
+    }
+  },
+  {
+    "model": "admin_tasks.fileextension",
+    "pk": 3,
+    "fields": {
+      "extension": "lda.id2word",
+      "file_group": 1
+    }
+  },
+  {
+    "model": "admin_tasks.fileextension",
+    "pk": 4,
+    "fields": {
+      "extension": "lda.state",
+      "file_group": 1
+    }
+  },
+  {
+    "model": "admin_tasks.fileextension",
+    "pk": 5,
+    "fields": {
+      "extension": "lda.state.sstats.npy",
+      "file_group": 1
+    }
+  },
+  {
+    "model": "admin_tasks.fileextension",
+    "pk": 7,
+    "fields": {
+      "extension": "comparison",
+      "file_group": 3
+    }
+  },
+  {
+    "model": "admin_tasks.fileextension",
+    "pk": 43,
+    "fields": {
+      "extension": "dict",
+      "file_group": 2
+    }
+  }
+]
