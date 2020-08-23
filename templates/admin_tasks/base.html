@@ -1,0 +1,223 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin tasks</title>
+    {% include 'init_bootstrap.html' %}
+    {% include 'init_js.html' %}
+    {% include 'init_css.html' %}
+    <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
+</head>
+<body>
+
+{% include 'admin_tasks/nav.html' %}
+
+<div class="container">
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card" id="task-card">
+                <div class="card-header" id="task-header">
+                    Current task running progress
+                </div>
+                <div class="card-body" id="task-container">
+                    <span class="d-none" id="no-active-task-prompt">No task currently active</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    {% if path_links %}
+        <div>
+        {% for link in path_links %}
+            {% if not forloop.last %}
+                <a href="{{ link.url }}">{{ link.label }}</a>>
+            {% else %}
+                {{ link.label }}
+            {% endif %}
+        {% endfor %}
+        </div>
+    {% endif %}
+    {% block content %}
+    {% endblock %}
+</div>
+{% block content_script %}
+{% endblock %}
+<script>
+    let checkForActiveTask = function (task_id = "") {
+        $.ajax("{% url "admin_tasks:poll_active_tasks" %}",
+            {
+                data: {
+                    csrfmiddlewaretoken: "{{ csrf_token }}",
+                    task_id: task_id
+                },
+                method: "POST",
+                success: function (data, status, jqXHR) {
+                    {#console.log(data);#}
+                    manager.register(data);
+                },
+                error: function () {
+                },
+                complete: function (jqXHR, textStatus) {
+                    setTimeout(function () {
+                        checkForActiveTask(task_id = manager.currentlyActiveTaskId);
+                    }, 4000);
+                }
+            }
+        );
+    };
+
+    let manager = {
+
+        currentlyActiveTaskId: "",
+        tasksStatus: {},
+
+        register: function (ajaxResponse) {
+            if (ajaxResponse.referenced_task !== null) {
+                if (ajaxResponse.referenced_task.status === "SUCCESS") {
+                    this.successful(ajaxResponse.referenced_task);
+                    this.currentlyActiveTaskId=""
+                } else if (ajaxResponse.referenced_task.status === "FAILURE") {
+                    this.failed(ajaxResponse.referenced_task);
+                    this.currentlyActiveTaskId=""
+                } else if (ajaxResponse.referenced_task.status === "RUNNING") {
+                    this.tasksStatus[ajaxResponse.referenced_task.task_id] = 5;
+                    this.update(ajaxResponse.referenced_task);
+                    this.currentlyActiveTaskId = ajaxResponse.referenced_task.task_id;
+                }
+            }
+            if (ajaxResponse.new_task !== null) {
+                this.currentlyActiveTaskId = ajaxResponse.new_task.task_id;
+                this.create(ajaxResponse.new_task);
+                this.update(ajaxResponse.new_task);
+                this.tasksStatus[this.currentlyActiveTaskId] = 5;
+
+                document.getElementById("no-active-task-prompt").classList = ["d-none"];
+                document.getElementById("no-active-task-prompt").className = "d-none";
+            }
+
+            for (let taskId in this.tasksStatus) {
+                if (this.tasksStatus[taskId] > 0) {
+                    this.tasksStatus[taskId]--;
+                } else {
+                    let deadTask = document.getElementById("task-" + taskId);
+                    delete this.tasksStatus[taskId];
+                    $(deadTask).alert("close");
+                }
+            }
+            if (jQuery.isEmptyObject(this.tasksStatus)) {
+                document.getElementById("no-active-task-prompt").removeAttribute("class")
+            }
+        },
+
+        successful: function (task) {
+            let taskId = task.task_id;
+            let taskDiv = document.getElementById("task-" + taskId);
+            if (taskDiv !== null) {
+                taskDiv.classList.replace("alert-dark", "alert-success");
+                taskDiv.className.replace("alert-dark", "alert-success");
+            }
+            let taskProgressBar = document.getElementById("task-" + taskId + "-progress-bar");
+            if (taskProgressBar !== null) {
+                taskProgressBar.classList.replace("bg-dark", "bg-success");
+                taskProgressBar.className.replace("bg-dark", "bg-success");
+                taskProgressBar.setAttribute("aria-valuenow", "100");
+                taskProgressBar.style.width = "100%";
+            }
+
+            let taskHeader = document.getElementById("task-" + taskId + "-header");
+            taskHeader.innerText = task.task_description;
+
+            let taskDescription = document.getElementById("task-" + taskId + "-description");
+            taskDescription.innerText = task.progress_description;
+        },
+
+        failed: function (task) {
+            let taskId = task.task_id;
+            let taskDiv = document.getElementById("task-" + taskId);
+            if (taskDiv !== null) {
+                taskDiv.classList.replace("alert-dark", "alert-danger");
+                taskDiv.className.replace("alert-dark", "alert-danger");
+            }
+            let taskProgressBar = document.getElementById("task-" + taskId + "-progress-bar");
+            if (taskProgressBar !== null) {
+                taskProgressBar.classList.replace("bg-dark", "bg-danger");
+                taskProgressBar.className.replace("bg-dark", "bg-danger");
+                taskProgressBar.setAttribute("aria-valuenow", "100");
+                taskProgressBar.style.width = "100%";
+            }
+
+            let taskHeader = document.getElementById("task-" + taskId + "-header");
+            taskHeader.innerText = task.task_description;
+
+            let taskDescription = document.getElementById("task-" + taskId + "-description");
+            taskDescription.innerText = task.progress_description;
+        },
+
+        update: function (task) {
+            let taskId = task.task_id;
+            let progress = task.progress;
+            let taskProgressBar = document.getElementById("task-" + taskId + "-progress-bar");
+            taskProgressBar.setAttribute("aria-valuenow", "" + progress);
+            taskProgressBar.style.width = "" + progress + "%";
+
+            let taskHeader = document.getElementById("task-" + taskId + "-header");
+            taskHeader.innerText = task.task_description;
+
+            let taskDescription = document.getElementById("task-" + taskId + "-description");
+            taskDescription.innerText = task.progress_description;
+        },
+
+        create: function (task) {
+            let taskId = task.task_id;
+
+            let progressBar = document.createElement("div");
+            progressBar.setAttribute("id", "task-" + taskId + "-progress-bar");
+            progressBar.setAttribute("role", "progressbar");
+            progressBar.setAttribute("aria-valuenow", "0");
+            progressBar.setAttribute("aria-valuemin", "0");
+            progressBar.setAttribute("aria-valuemax", "100");
+            progressBar.style.width = "0%";
+            progressBar.className = "progress-bar bg-dark";
+            progressBar.classList.add("progress-bar", "bg-dark");
+
+            let progressContainer = document.createElement("div");
+            progressContainer.className = "progress task-progress-bar-container";
+            progressContainer.classList.add("progress", "task-progress-bar-container");
+
+            let progressDescription = document.createElement("span");
+            progressDescription.setAttribute("id", "task-" + taskId + "-description");
+            let progressDescriptionParagraph = document.createElement("p");
+
+            let progressHeader = document.createElement("h5");
+            progressHeader.setAttribute("id", "task-" + taskId + "-header");
+            progressHeader.className = "alert-heading";
+            progressHeader.classList.add("alert-heading");
+
+            let taskAlert = document.createElement("div");
+            taskAlert.setAttribute("id", "task-" + taskId);
+            taskAlert.setAttribute("role", "alert");
+            taskAlert.className = "alert alert-dark fade show";
+            taskAlert.classList.add("alert", "alert-dark", "fade", "show");
+
+            progressContainer.appendChild(progressBar);
+            progressDescriptionParagraph.appendChild(progressDescription);
+            taskAlert.appendChild(progressHeader);
+            taskAlert.appendChild(progressDescriptionParagraph);
+            taskAlert.appendChild(progressContainer);
+            document.getElementById("task-container").appendChild(taskAlert);
+        },
+    };
+
+    checkForActiveTask();
+
+    {% if alert %}
+        window.onload = function() {
+            alert("{{ alert.alert_message }}")
+        };
+    {% endif %}
+</script>
+</body>
+</html>

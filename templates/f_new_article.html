@@ -1,0 +1,11 @@
+{% if new_article_form %}
+    <form name="new-article-form" action="" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ new_article_form.article_text_field }}
+        </div>
+        <div class="form-group">
+            <button class="btn btn-dark" role="submit" aria-pressed="false">Analyze to topics</button>
+        </div>
+    </form>
+{% endif %}

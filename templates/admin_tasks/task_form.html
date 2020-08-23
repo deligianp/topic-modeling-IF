@@ -1,0 +1,22 @@
+{% extends "admin_tasks/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <div class="row my-4">
+        <div class="col-12">
+            <h4>{{ form_heading }}</h4>
+            {% if form_error %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <h5>An error occurred</h5>
+                    {{ form_error }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endif %}
+            <form name="task-form" action="" method="post">
+                {% crispy task_form task_form.helper %}
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,418 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Topic {{ topic_index }}</title>
+    {% include 'init_bootstrap.html' %}
+    {% include 'init_chart.html' %}
+    {% include 'init_jqcloud.html' %}
+    {% include 'init_js.html' %}
+    {% include 'init_tltree.html' %}
+    {% include 'init_rangeslider.html' %}
+    {% include 'init_css.html' %}
+</head>
+<body>
+{% include "navbar.html" %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="topicTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link text-dark active" id="topic-terms-tab" data-toggle="tab" href="#topic-terms"
+                       role="tab"
+                       aria-controls="topic-terms" aria-selected="true">Topic terms list</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" id="topic-visualizations-tab" data-toggle="tab"
+                       href="#topic-vizualizations"
+                       role="tab"
+                       aria-controls="topic-vizualizations" aria-selected="false">Topic visualizations</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" id="relevant-articles-tab" data-toggle="tab"
+                       href="#relevant-articles"
+                       role="tab"
+                       aria-controls="relevant-articles" aria-selected="false">Relevant articles</a>
+                </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="topic-terms" role="tabpanel" aria-labelledby="home-tab">
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <h4>Top {{ topic_terms|length }} terms for topic {{ topic_index }}</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            {% include 'topic_terms.html' %}
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="topic-vizualizations" role="tabpanel" aria-labelledby="profile-tab">
+                    <div class="row my-2">
+                        <div class="col-md-6 col-12">
+                            <div class="row">
+                                <div class="col-12 text-center">
+                                    <h5>Top {{ topic_terms|length }} terms distribution for topic {{ topic_index }}</h5>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div id="terms-distribution">
+                                        <canvas class="w-100" id="term-distribution-canvas"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <div class="row">
+                                <div class="col-12 text-center">
+                                    <h5>Terms cloud for topic {{ topic_index }}</h5>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="w-100" id="terms-tagcloud">
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row my-2">
+                        <div class="col-12">
+                            <div class="row">
+                                <div class="col-12 text-center">
+                                    <h5>Topic evolution relevant to topic {{ topic_index }}</h5>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12" id="evolution-control">
+                                    <div class="row my-2">
+                                        <div class="col-12">
+                                            <div class="row my-3">
+                                                <div class="col-12">
+                                                    <label for="evolution-measure">Type of measure</label>
+                                                    <select class="form-control" id="evolution-measure">
+                                                        {% for evolution in evolutions %}
+                                                            <option value="{{ evolution.name }}">{{ evolution.description }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="row my-3">
+                                                <div class="col-12">
+                                                    <label for="threshold-field"
+                                                           id="evolution-threshold-label">Threshold</label>
+                                                    <div class="row mt-5">
+                                                        <div class="col-2 text-center justify-content-end"><span id="threshold-low-relation"></span>
+                                                        </div>
+                                                        <div class="col-8 px-0">
+                                                            <input type="range" min="0" max=100 step="0.001"
+                                                                   class="range-slider"
+                                                                   id="slider-0">
+                                                        </div>
+                                                        <div class="col-2 text-center justify-content-start"><span id="threshold-high-relation"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="row justify-content-center">
+                                        <div class="d-none" id="evolution-loader">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12" id="evolution-tree-container">
+                                            <div class="row justify-content-center">
+                                                <div class="col-4">
+                                                    <h5 id="evolution-tree-first-level-header"></h5>
+                                                </div>
+                                                <div class="col-2"></div>
+                                                <div class="col-4">
+                                                    <h5 id="evolution-tree-second-level-header"></h5>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-12" id="evolution-tree">
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="relevant-articles" role="tabpanel" aria-labelledby="relevant-articles-tab">
+                    {% if relevant_articles|length > 0 %}
+                        <div class="list-group my-3">
+                            {% with relevant_articles as link_list %}
+                            {% include 'link_list.html'%}
+                            {% endwith %}
+                        </div>
+                    {% else %}
+                        <h4>No relevant articles to topic {{ topic_index }}</h4>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+    var topicTerms = [
+            {% for topic_term in topic_terms %}{term: "{{ topic_term.term }}", value:{{ topic_term.value }}
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+    ];
+
+    var associatingColors = colorTints("#007bff", 2 *{{ topic_terms|length }});
+
+    var evolutions = {
+        {% for evolution in evolutions %}
+            "{{ evolution.name }}": {
+                description: "{{ evolution.description }}",
+                lowerBound: {{ evolution.lower_bound }},
+                upperBound: {{ evolution.upper_bound }},
+                isScore: {{ evolution.is_score }},
+                ldaModel0: "{{ evolution.lda_model_0 }}",
+                ldaModel1: "{{ evolution.lda_model_1 }}"
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+
+
+    var thresholdTimer = null;
+    var thresholdLastRegistered = null;
+    var sliderTooltip = null;
+
+    var topicEvolutionTree = new TwoLevelTree("evolution-tree", 0.5);
+
+    function transformRangeValue(rangeValue) {
+        let selectedEvolutionName = $("#evolution-measure").val();
+        let rangeSliderValue = $("#slider-0").val();
+        let leftBound = evolutions[selectedEvolutionName].isScore ? evolutions[selectedEvolutionName].lowerBound : evolutions[selectedEvolutionName].upperBound;
+        let rightBound = evolutions[selectedEvolutionName].isScore ? evolutions[selectedEvolutionName].upperBound : evolutions[selectedEvolutionName].lowerBound;
+        let valueRange = rightBound - leftBound;
+        return Math.round((leftBound + (valueRange * rangeSliderValue / 100)) * 1000) / 1000;
+    }
+
+    let squareEvolutionsContainer = function () {
+        let $targetDiv = $("#evolution-tree");
+        let $targetDivMaxHeight = $targetDiv.width() * 0.65;
+        $targetDiv.css("max-height", $targetDivMaxHeight + "px");
+    };
+
+    function calculateTopicEvolution() {
+        let measureName = $("#evolution-measure").attr("disabled", "disabled").val();
+        let threshold = transformRangeValue($("#slider-0").attr("disabled", "disabled").val());
+        $.ajax("ajax/topic-evolution/", {
+            data: {
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+                measure_name: measureName,
+                threshold: threshold
+            },
+            method: "POST",
+            beforeSend: function (a, b) {
+                $("#evolution-loader").removeClass("d-none")
+                    .addClass("col-2");
+                renderHorizontalLoadingNotification("evolution-loader", "{% static 'thesis_ui/img/loading-primary-horizontal.gif' %}");
+                $("#evolution-tree-container").addClass("d-none");
+            },
+            complete: function () {
+                $("#evolution-measure").removeAttr("disabled");
+                $("#slider-0").removeAttr("disabled");
+            },
+            success: function (data) {
+                $("#evolution-loader").removeClass("col-2");
+                if (data.hasOwnProperty("error")) {
+                    renderErrorNotification("evolution-loader", data.error.title, data.error.message);
+                } else if (data.hasOwnProperty("parents")) {
+                    if (data.parents.length > 0) {
+                        $("#evolution-tree-container").removeClass("d-none");
+                        $("#evolution-tree-first-level-header").text("Topics of " + evolutions[measureName].ldaModel0);
+                        $("#evolution-tree-second-level-header").text("Topics of " + evolutions[measureName].ldaModel1);
+                        topicEvolutionTree.nodeTooltip = function (node) {
+                            let tooltip = node.depth == 0 ? this.tooltip0 : this.tooltip1;
+                            tooltip.resetContent();
+                            if (node.text === null || node.text === "" || (!(node.hasOwnProperty("text")))) {
+                                $.ajax("ajax/topic-terms/", {
+                                    method: "POST",
+                                    data: {
+                                        csrfmiddlewaretoken: "{{ csrf_token }}",
+                                        topic_description: node.name
+                                    },
+                                    success: function (data) {
+                                        node.text = data.terms;
+                                        if ((node.depth === 0 && topicEvolutionTree.activeNode0 === node) || (node.depth === 1 && topicEvolutionTree.activeNode1 === node)) {
+                                            tooltip.setHeading(topicEvolutionTree.nodeLabel(node));
+                                            tooltip.setText(topicEvolutionTree.nodeText(node));
+                                        }
+                                    }
+                                });
+                                tooltip.setText("<div class='text-center'><img src='{% static 'thesis_ui/img/loading.gif' %}' width='40%' height='auto'/></div>");
+                            } else {
+                                tooltip.setHeading(topicEvolutionTree.nodeLabel(node));
+                                tooltip.setText(topicEvolutionTree.nodeText(node));
+                            }
+                            tooltip.bindNode(node);
+                            return tooltip;
+                        };
+                        topicEvolutionTree.nodeLabel = node => "Topic " + node.name.split("_").pop();
+                        topicEvolutionTree.linkLabel = link => link.hasOwnProperty("label") ? parseFloat(link.label).toFixed(3) : "";
+                        topicEvolutionTree.nodeText = function (node) {
+                            if (node.hasOwnProperty("text")) {
+                                let olElement = document.createElement("ol");
+                                node.text.forEach(function (term) {
+                                    let liElement = document.createElement("li");
+                                    liElement.innerHTML = term;
+                                    olElement.appendChild(liElement);
+                                });
+                                return olElement.outerHTML;
+                            }
+                            return "";
+                        };
+                        //squareEvolutionsContainer();
+                        topicEvolutionTree.updateData(data.parents);
+                        $("#evolution-loader").empty()
+                            .addClass("d-none");
+                    } else {
+                        renderWarningNotification("evolution-loader", "No results for given threshold and measure", "For threshold " + threshold + ", on measure \"" + evolutions[measureName].description + "\", there were no topics that could be related, satisfying the threshold.");
+                    }
+                }
+            },
+            statusCode: {
+                500: function () {
+                    $("#evolution-loader").removeClass("col-2");
+                    renderErrorNotification("evolution-loader", "Error", "An error occured while attempting related topics that satisfy the threshold " + threshold + ", for measure \"" + evolutions[measureName].description + "\".");
+                }
+            }
+        });
+    }
+
+    function renderVisualizations() {
+        // Render termcloud
+        let renderTermCloud = function () {
+            let cloudTerms = [];
+            $.each(topicTerms, function (index, term) {
+                let cloudTerm = {
+                    text: term.term.split(", ")[0],
+                    weight: term.value
+                };
+                cloudTerms.push(cloudTerm);
+            });
+            $("#terms-tagcloud").jQCloud(cloudTerms, {
+                height: $("#terms-tagcloud").width(),
+                autoResize: true,
+                colors: associatingColors.slice(0, {{ topic_terms|length }})
+            });
+
+        };
+        renderTermCloud();
+
+
+        let renderTermDistribution = function () {
+            let canvas = $("#term-distribution-canvas");
+            canvas.attr("height", canvas.width());
+            let ctx = $("#term-distribution-canvas")[0].getContext('2d');
+            let labels = $.map(topicTerms, term => term.term.split(", ")[0]);
+            let data = $.map(topicTerms, term => term.value);
+            let fillColor = hexToRgb("007bff");
+            let config = {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Term distribution',
+                        data: data,
+                        borderColor: "#007bff",
+                        backgroundColor: "rgba(" + fillColor.join(", ") + ",0.5)",
+                        fill: true,
+                        lineTension: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Term distribution'
+                            },
+                            ticks: {
+                                suggestedMin: 0,
+                                suggestedMax: Math.max(...data),
+                            }
+                        }]
+                    }
+                }
+            };
+            let lineChart = myLineChart = new Chart(ctx, config);
+        };
+        renderTermDistribution();
+
+
+        let renderEvolution = function () {
+            $("#slider-0").on("change", function () {
+                calculateTopicEvolution();
+            });
+            $("#evolution-measure").change(function () {
+                let measureName = $("#evolution-measure").val();
+                let leftBound = evolutions[measureName].isScore ? evolutions[measureName].lowerBound : evolutions[measureName].upperBound;
+                let rightBound = evolutions[measureName].isScore ? evolutions[measureName].upperBound : evolutions[measureName].lowerBound;
+                //$("#evolution-threshold-label")
+                //    .html("Threshold (highest relation: <span class='text-success'>" + (evolutions[measureName].isScore ? evolutions[measureName].upperBound : evolutions[measureName].lowerBound) + "</span>, lowest relation: <span class='text-danger'>" + (evolutions[measureName].isScore ? evolutions[measureName].lowerBound : evolutions[measureName].upperBound) + "</span>)");
+                //let defaultThreshold = Math.round(((leftBound + rightBound) / 2) * 1000) / 1000;
+                $("#slider-0").val(50);
+                sliderTooltip.updatePosition();
+                $("#threshold-low-relation").text("More loose threshold: " + Math.round(leftBound*1000)/1000);
+                $("#threshold-high-relation").text("More strict threshold: " + Math.round(rightBound*1000)/1000);
+                calculateTopicEvolution();
+            });
+            let measureName = $("#evolution-measure").val();
+            let leftBound = evolutions[measureName].isScore ? evolutions[measureName].lowerBound : evolutions[measureName].upperBound;
+            let rightBound = evolutions[measureName].isScore ? evolutions[measureName].upperBound : evolutions[measureName].lowerBound;
+            //$("#evolution-threshold-label")
+            //    .html("Threshold (highest relation: <span class='text-success'>" + (evolutions[measureName].isScore ? evolutions[measureName].upperBound : evolutions[measureName].lowerBound) + "</span>, lowest relation: <span class='text-danger'>" + (evolutions[measureName].isScore ? evolutions[measureName].lowerBound : evolutions[measureName].upperBound) + "</span>)");
+            let defaultThreshold = Math.round(((leftBound + rightBound) / 2) * 1000) / 1000;
+            $("#slider-0").val(50);
+            $("#threshold-low-relation").text("More loose threshold: " + Math.round(leftBound*1000)/1000);
+            $("#threshold-high-relation").text("More strict threshold: " + Math.round(rightBound*1000)/1000);
+            calculateTopicEvolution();
+
+            sliderTooltip = new RangeSliderTooltip("slider-0");
+            sliderTooltip.valueMapping = transformRangeValue;
+            $("#slider-0").on("input", function () {
+                sliderTooltip.updatePosition();
+            });
+        };
+        renderEvolution();
+    }
+
+    $(document).ready(function () {
+        $("#topic-visualizations-tab").on("shown.bs.tab", function () {
+            renderVisualizations();
+        });
+        //$(window).resize(squareEvolutionsContainer);
+    });
+
+
+</script>
+</body>
+</html>

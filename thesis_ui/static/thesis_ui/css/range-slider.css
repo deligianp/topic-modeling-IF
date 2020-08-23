@@ -1,0 +1,122 @@
+/*
+Tested on:
+    * Chrome: Working on v.79
+    * Safari: Not working on v.5 (expected no to work for versions before 10)
+    * Firefox: Working on v.72
+    * Opera: Working on v.66
+    * Internet Explorer: Seriously?
+*/
+
+:root {
+    /* Color palette */
+    --rs-default-color: rgb(0, 123, 255);
+    --rs-background: rgb(224, 224, 224);
+    --rs-background-active: rgb(255, 255, 255);
+    --rs-thumb-color: var(--rs-default-color);
+    --rs-thumb-color-active: var(--rs-default-color);
+    --rs-thumb-color-active-inner-border: rgb(255, 255, 255);
+    --rs-thumb-color-active-outer-border: var(--rs-default-color);
+    --rs-tooltip-color: var(--rs-default-color);
+    --rs-tooltip-text-color: rgb(255, 255, 255);
+    /* Sizes */
+    --rs-thumb-diameter: 16px;
+    --rs-thumb-border-radius: 50%;
+    --rs-tooltip-border-radius: 2px;
+    --rs-tooltip-font-size: 1rem;
+    --rs-tooltip-padding: 5px;
+    --rs-tooltip-pointer-height: 10px;
+    --rs-tooltip-spacing: 8px;
+}
+
+.range-slider {
+    width: 100%;
+    margin: 0;
+    height: 10px;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    -ms-appearance: none;
+    -o-appearance: none;
+    appearance: none;
+    outline: none;
+    background-color: var(--rs-background);
+    border-width: 1px;
+    border-radius: 4px;
+    transition: box-shadow 0.2s, background-color 0.2s;
+    -webkit-transition: box-shadow 0.2s, background-color 0.2s;
+    -moz-transition: box-shadow 0.2s, background-color 0.2s;
+    -o-transition: box-shadow 0.2s, background-color 0.2s;
+}
+
+.range-slider:active, .range-slider:hover {
+    background-color: var(--rs-background-active);
+    box-shadow: 0px 0px 8px 2px rgba(0, 0, 0, 0.2);
+    transition: box-shadow 0.2s, background-color 0.2s;
+    -webkit-transition: box-shadow 0.2s, background-color 0.2s;
+    -moz-transition: box-shadow 0.2s, background-color 0.2s;
+    -o-transition: box-shadow 0.2s, background-color 0.2s;
+}
+
+.range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: var(--rs-thumb-diameter);
+    height: var(--rs-thumb-diameter);
+    border-radius: var(--rs-thumb-border-radius);
+    background: var(--rs-thumb-color);
+    position: relative;
+    cursor: pointer;
+}
+
+.range-slider::-moz-range-thumb {
+    -moz-appearance: none;
+    appearance: none;
+    width: var(--rs-thumb-diameter);
+    height: var(--rs-thumb-diameter);
+    background: var(--rs-thumb-color);
+    border-width: 0;
+    border-radius: var(--rs-thumb-border-radius);
+    position: relative;
+    cursor: pointer;
+}
+
+.range-slider::-webkit-slider-thumb:hover, .range-slider::-webkit-slider-thumb:active {
+    background-color: var(--rs-thumb-color-active);
+    box-shadow: 0 0 0 1px var(--rs-thumb-color-active-inner-border), 0 0 0 2px var(--rs-thumb-color-active-outer-border);
+}
+
+.range-slider::-moz-range-thumb:hover, .range-slider::-moz-range-thumb:active {
+    background-color: var(--rs-thumb-color-active);
+    box-shadow: 0 0.5px 0 1px var(--rs-thumb-color-active-inner-border), 0 0.5px 0 2px var(--rs-thumb-color-active-outer-border);
+}
+
+.range-slider-thumb-tooltip {
+    font-size: var(--rs-tooltip-font-size);
+    position: absolute;
+    display: inline-block;
+    top: calc(0px - var(--rs-tooltip-font-size) - var(--rs-tooltip-padding) - var(--rs-tooltip-pointer-height) - var(--rs-tooltip-spacing));
+    left: 0;
+    background-color: var(--rs-tooltip-color);
+    padding: var(--rs-tooltip-padding);
+    border-radius: var(--rs-tooltip-border-radius);
+    text-align: center;
+    color: var(--rs-tooltip-text-color);
+    transform: translate(-50%);
+    -webkit-transform: translate(-50%);
+    -moz-transform: translate(-50%);
+    -ms-transform: translate(-50%);
+    -o-transform: translate(-50%);
+}
+
+.range-slider-thumb-tooltip::after {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-top: var(--rs-tooltip-pointer-height) solid var(--rs-tooltip-color);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    margin-top: -4px;
+}

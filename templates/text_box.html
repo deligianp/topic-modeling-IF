@@ -1,0 +1,15 @@
+<div class="row scrollable-container text-container my-5">
+    <div class="col-12">
+        {% if data.text.text_title %}
+        <h2>{{ data.text.text_title }}</h2>
+        {% endif %}
+        {% if data.text.text_meta %}
+        {% for text_meta_item in data.text.text_meta %}
+        <h5>{{ text_meta_item.label }}: {{ text_meta_item.value }}</h5>
+        {% endfor %}
+        {% endif %}
+        <p>
+            {{ data.text.text_content }}
+        </p>
+    </div>
+</div>

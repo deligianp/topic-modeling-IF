@@ -1,0 +1,212 @@
+{% extends "admin_tasks/base.html" %}
+
+{% block content %}
+    <div class="row my-4">
+        <div class="col-12">
+
+            <table class="table table-sm">
+                {% if obj.headings %}
+                    <thead>
+                    <tr>
+                        {% for heading in obj.headings %}
+                            <th scope="col">{{ heading }}</th>
+                        {% endfor %}
+                        {% if obj.delete_link_prefix %}
+                            <th>Actions</th>
+                        {% endif %}
+                    </tr>
+                    </thead>
+                {% endif %}
+                <tbody>
+                {% if data not in obj and not obj.data|length_is:0 %}
+                    {% for data in obj.data %}
+                        <tr>
+                            <td>{% if data.url %}<a href="{{ data.url }}" id="object-{{ data.name }}">
+                                {{ data.label }}
+                            </a>{% else %}
+                                {{ data.name }} {% endif %} </td>
+                            {% if obj.delete_link_prefix %}
+                                <td>
+                                    <button class="btn btn-danger" id="delete-object-{{ data.name }}">Delete</button>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td>No objects available</td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if pagination %}
+        <div class="row my-4 justify-content-center">
+            <nav>
+                <ul class="pagination" id="pagination-controller">
+                </ul>
+            </nav>
+        </div>
+    {% endif %}
+    <div class="modal fade" id="delete-confirmation-modal" tabindex="-1" role="dialog"
+         aria-labelledby="delete-confirmation-modal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="delete-confirmation-modal-title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="delete-confirmation-modal-body">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                    <form id="delete-request-endpoint" method="post" name="delete-request-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger" value="submit">Continue</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content_script %}
+    <script>
+
+        {#        {% if delete %}#}
+        {##}
+        {#            const objectAttributes = [#}
+        {#                {% for object_attribute in delete.object_attributes %}#}
+        {#                    "{{ object_attribute }}",#}
+        {#                {% endfor %}#}
+        {#            ];#}
+        {#            const objectAttributeValues = {#}
+        {#                {% for object_value in delete.object_values %}#}
+        {#                    "{{ object_value.name }}": [#}
+        {#                        {% for object_attribute_value in object_value.values %}#}
+        {#                            "{{ object_attribute_value }}",#}
+        {#                        {% endfor %}#}
+        {#                    ],#}
+        {#                {% endfor %}#}
+        {#            };#}
+
+        let constructAndOpenDialog = function (event) {
+            let deleteButtonId = event.target.id;
+            let objectName = deleteButtonId.slice("delete-object-".length);
+            let objectLabel = document.getElementById("object-" + objectName).innerText;
+            $("#delete-confirmation-modal-title").html("Delete object <span class=\"font-weight-bold\">\"" + objectLabel + "\"</span>");
+            $("#delete-confirmation-modal-body").text("This action will delete the object \"" + objectLabel + "\" permanently. Continue?");
+            $("#delete-request-endpoint").attr("action", "/admin-tasks/{{ obj.delete_link_prefix }}" + objectName + "/");
+            $("#delete-confirmation-modal").modal('show');
+        };
+        $("button[id^=delete-object-]").click(constructAndOpenDialog);
+
+        {#        {% endif %}#}
+        {% if pagination %}
+            let constructPaginationButton = function (buttonIndex, isCurrent, mode) {
+                let buttonListElement = document.createElement("li");
+                if (isCurrent && mode === 1) {
+                    buttonListElement.className = "page-item active";
+                    buttonListElement.classList.add("page-item", "active");
+                } else {
+                    buttonListElement.className = "page-item";
+                    buttonListElement.classList.add("page-item");
+                }
+
+                if (mode === 0) {
+                    let buttonLink = document.createElement("a");
+                    buttonLink.className = "page-link";
+                    buttonLink.classList.add("page-link");
+                    buttonLink.setAttribute("href", "?page=1");
+                    buttonLink.setAttribute("aria-label", "First page");
+
+                    let buttonTextSpan = document.createElement("span");
+                    buttonTextSpan.setAttribute("aria-hidden", "true");
+                    buttonTextSpan.innerText = "First page";
+
+                    let buttonSrSpan = document.createElement("span");
+                    buttonSrSpan.className = "sr-only";
+                    buttonSrSpan.classList.add("sr-only");
+                    buttonSrSpan.innerText = "First page";
+                    buttonLink.appendChild(buttonTextSpan);
+                    buttonLink.appendChild(buttonSrSpan);
+                    buttonListElement.appendChild(buttonLink);
+                } else if (mode === 2) {
+                    let buttonLink = document.createElement("a");
+                    buttonLink.className = "page-link";
+                    buttonLink.classList.add("page-link");
+                    buttonLink.setAttribute("href", "?page=" + buttonIndex);
+                    buttonLink.setAttribute("aria-label", "Last page");
+
+                    let buttonTextSpan = document.createElement("span");
+                    buttonTextSpan.setAttribute("aria-hidden", "true");
+                    buttonTextSpan.innerText = "Last page";
+
+                    let buttonSrSpan = document.createElement("span");
+                    buttonSrSpan.className = "sr-only";
+                    buttonSrSpan.classList.add("sr-only");
+                    buttonSrSpan.innerText = "Last page";
+                    buttonLink.appendChild(buttonTextSpan);
+                    buttonLink.appendChild(buttonSrSpan);
+                    buttonListElement.appendChild(buttonLink);
+                } else {
+                    let buttonLink = document.createElement("a");
+                    buttonLink.className = "page-link";
+                    buttonLink.classList.add("page-link");
+                    buttonLink.setAttribute("href", "?page=" + buttonIndex);
+                    let innerText = "";
+                    if (isCurrent) {
+                        innerText = buttonIndex + " ";
+                        let buttonCurrentSpan = document.createElement("span");
+                        buttonCurrentSpan.className = "sr-only";
+                        buttonCurrentSpan.classList.add("sr-only");
+                        buttonCurrentSpan.innerText = "(current)";
+                        buttonLink.innerText = innerText;
+                        buttonLink.appendChild(buttonCurrentSpan);
+                    } else {
+                        buttonLink.innerText = buttonIndex
+                    }
+                    buttonListElement.appendChild(buttonLink);
+                }
+                return buttonListElement
+            };
+
+            let populatePaginationControl = function (current, max) {
+                console.assert(Number.isInteger(current), "Current page number is not an integer");
+                console.assert(Number.isInteger(max), "Maximum page number is not an integer");
+                console.assert(current > 0, "Current page number is set to 0");
+                console.assert(max > 1, "Maximum page number is set to 1");
+                console.assert(max >= current, "Maximum page number is smaller than the current page");
+
+                let lowestPageNumber;
+                if (current < 3) {
+                    lowestPageNumber = 1;
+                } else {
+                    lowestPageNumber = current - 2;
+                }
+                let highestPageNumber = Math.min(max, current + 2);
+                let paginationController = document.getElementById("pagination-controller");
+                let firstPageButton = constructPaginationButton(1, false, 0);
+                paginationController.appendChild(firstPageButton);
+                for (let i = lowestPageNumber; i <= highestPageNumber; i++) {
+                    let button;
+                    if (i !== current) {
+                        button = constructPaginationButton(i, false, 1);
+                    } else {
+                        button = constructPaginationButton(i, true, 1);
+                    }
+                    paginationController.appendChild(button);
+                }
+                let lastPageButton = constructPaginationButton(max, false, 2);
+                paginationController.appendChild(lastPageButton);
+            };
+
+            {% if pagination.current and pagination.max %}
+                populatePaginationControl({{ pagination.current }}, {{ pagination.max }});
+            {% endif %}
+        {% endif %}
+    </script>
+{% endblock %}

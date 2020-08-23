@@ -1,0 +1,66 @@
+{# Optional fields: #}
+{# article_info #}
+{#      title: the article's title #}
+{#      language: language of the article #}
+{#      year: the year the article was published #}
+{#      authors: a string containing the authors and collaborators of the article #}
+{#      abstract: the abstract of the article #}
+{# This template is supposed to be used for the generation of the article's information during the HTTP response. #}
+{# Perhaps for an AJAX generation, a slightly different template should be used. #}
+{% if article_info and article_info|length > 0 %}
+    <table class="table text-info-table" id="article-table">
+        <tbody>
+        {% if article_info.title %}
+            <tr>
+                <th scope="row">Title</th>
+                <td><span class="font-weight-bold" id="article-title">{{ article_info.title }}</span></td>
+            </tr>
+        {% endif %}
+        {% if article_info.language %}
+            <tr>
+                <th scope="row">Language</th>
+                <td><span id="article-language">{{ article_info.language }}</span></td>
+            </tr>
+        {% endif %}
+        {% if article_info.year %}
+            <tr>
+                <th scope="row">Year</th>
+                <td><span id="article-year">{{ article_info.year }}</span></td>
+            </tr>
+        {% endif %}
+        {% if article_info.authors %}
+            <tr>
+                <th scope="row">Authors and collaborators</th>
+                <td>
+                    <button class="btn btn-dark" type="button" data-toggle="collapse" data-target="#collapsedAuthorList"
+                            aria-expanded="false" aria-controls="collapsedAuthorList">Show authors
+                    </button>
+                    <div class="collapse" id="collapsedAuthorList">
+                        <div class="card card-body">
+                            <span id="article-author-list">{{ article_info.authors }}</span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        {% endif %}
+        {% if article_info.abstract %}
+            <tr class="text-row">
+                <th scope="row">Abstract</th>
+                <td class="font-weight-light text-justify">
+                    <span id="article-abstract">{{ article_info.abstract }}</span>
+                </td>
+            </tr>
+        {% endif %}
+        {% if article_info.article_additional_info %}
+            {% for additional_info in article_info.article_additional_info %}
+                <tr{% if additional_info.text_row %} class="text-row"{% endif %}>
+                    <th scope="row">{{ additional_info.heading }}</th>
+                    <td{% if additional_info.text_row %} class="font-weight-light text-justify"{% endif %}>
+                        <span id="{{ additional_info.heading|cut:" "|lower }}">{{ additional_info.content|linebreaks }}</span>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endif %}
+        </tbody>
+    </table>
+{% endif %}

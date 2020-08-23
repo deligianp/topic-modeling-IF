@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <title>Show topic evolution</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href='{% static "thesis_ui/css/styles.css" %}'>
+    <script type="text/javascript" src='{% static "thesis_ui/scripts/jquery-3.4.1.js" %}'></script>
+    <script type="text/javascript" src='{% static "thesis_ui/scripts/d3.v3.min.js" %}'></script>
+    <script type="text/javascript" src='{% static "thesis_ui/scripts/twoleveltree.svg.1.1.js" %}'></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+</head>
+
+<body>
+{% include 'navbar.html' %}
+
+<div class="container">
+    <div class="my-sm-4">
+        {% if ws_required %}
+        <form method="get">
+            <div class="form-group">
+                <label for="metric-select">Distance model</label>
+                <div class="row mb-1">
+                    <select name="selected_metric" class="custom-select" id="metric-select">
+                        {% for metric in ws_required.evolutions %}
+                        <option value="{{ metric.name }}">{{ metric.description }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="threshold-field">Threshold <span id="threshold-range"></span></label>
+                <div class="row mb-1">
+                    <input name="threshold_value" type="text" id="threshold-field" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="topic-id-field">Topic index <span id="topic-id-range"></span></label>
+                <div class="row">
+                    <div class="input-group">
+                        <input name="topic_id" type="text" id="topic-id-field" class="form-control"
+                               placeholder="Topic index">
+                        <div class="input-group-append">
+                            <button name="submit" value="submit" class="btn">Show topic</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        {% else %}
+        <div class="alert alert-danger fade show" role="alert">
+            <p>No evolutions available</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if server_error %}
+    {% include "error_alert.html" %}
+    {% else %}
+    {% if visualization %}
+    {% if visualization.data_description %}
+    <div class="row">
+        <div class="col-12">
+            <h3><p class="text-center">{{visualization.data_description.comparison_description}}</p></h3>
+        </div>
+        <div class="col-12">
+            <div class="row">
+                <div class="col-4 text-center">
+                    <p><strong>{{visualization.data_description.lda_model_0_description}}</strong><br>{{visualization.data_description.lda_model_0_training_context}}</p>
+                </div>
+                <div class="col-4">
+
+                </div>
+                <div class="col-4 text-center">
+                    <p><strong>{{visualization.data_description.lda_model_1_description}}</strong><br>{{visualization.data_description.lda_model_1_training_context}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <div class="row" id="tree_div"></div>
+    {% endif %}
+    {% endif %}
+</div>
+</body>
+<script>
+    var topic_index_ranges={};
+    var topic_threshold_ranges={};
+    {% for evolution in ws_required.evolutions %}
+    topic_index_ranges["{{ evolution.name }}"]=[{{ evolution.min_topic_index }},{{ evolution.max_topic_index}}]
+    topic_threshold_ranges["{{ evolution.name }}"]=[{{ evolution.lower_bound }},{{ evolution.upper_bound}}]
+    {% endfor %}
+
+    function update_chosen_distance_topic_data() {
+        chosen_model_index=$("#metric-select").val()
+        $("#topic-id-range").html("( from "+topic_index_ranges[chosen_model_index][0]+" up to "+topic_index_ranges[chosen_model_index][1]+")");
+        $("#topic-id-field").attr("placeholder","For topic index, enter a number between "+ topic_index_ranges[chosen_model_index][0] +" and "+topic_index_ranges[chosen_model_index][1]);
+        $("#threshold-range").html("( from "+topic_threshold_ranges[chosen_model_index][0]+" up to "+topic_threshold_ranges[chosen_model_index][1]+")");
+        $("#threshold-field").attr("placeholder","For threshold, enter a number between "+ topic_threshold_ranges[chosen_model_index][0] +" and "+topic_threshold_ranges[chosen_model_index][1]);
+    }
+
+    $(document).ready(function(){
+        update_chosen_distance_topic_data();
+        $("#metric-select").change(update_chosen_distance_topic_data);
+        $(".node>circle").tooltip();
+    });
+
+    {% if visualization %}
+    {% if visualization.data %}
+    let tree_nodes= {{ visualization.data |safe }};
+
+    let treeRepresentation = new TwoLevelTree("tree_div",0.5);
+    treeRepresentation.nodeLabel = function (nodeData) {
+        let name = nodeData.name;
+        let split_text = name.split("_");
+
+        return "Topic " + split_text[split_text.length - 1];
+    };
+    treeRepresentation.nodeText=function(objectData, objectDom){
+        $(objectDom).css("display","none");
+
+        // Set delay on hover that after that will send an AJAX request
+        setTimeout(function() {
+            if (treeRepresentation.hoveredNode===objectData) {
+                if (!(objectData.hasOwnProperty("text"))) {
+                    $(objectDom).css("display","block");
+
+                    $(objectDom).html("<img src='{% static "thesis_ui/img/loading.gif" %}' width='80px' height='80px'/>");
+
+                    $.ajax({
+                        url: 'dev-topic-evolution/ajax/topic-terms',
+                        data: {
+                            'target_topic': objectData.name
+                        },
+                        dataType: 'json',
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            if (treeRepresentation.hoveredNode==objectData) {
+                                $(objectDom).html("An error occurred and couldn't load terms for "+objectData.name);
+                            }
+                        },
+                        success: function (data) {
+                            if (data.terms === null) {
+                                if (treeRepresentation.hoveredNode==objectData) {
+                                    $(objectDom).html("An error occurred and couldn't load terms for "+objectData.name);
+                                }
+                            }
+                            else {
+                                objectData.text=data.terms;
+                                if (treeRepresentation.hoveredNode==objectData) {
+                                    $(objectDom).html(objectData.text.join("<br>"));
+                                }
+                            }
+                        },
+                        timeout: 4000
+                    });
+                } else {
+                    $(objectDom).css("display","block");
+                    $(objectDom).html(objectData.text.join("<br>"));
+                }
+            }
+        },1000);
+    };
+
+    treeRepresentation.linkLabel=function(linkData) {
+        if (linkData.hasOwnProperty("label")) {
+            let label=linkData.label;
+            return label.toFixed(3);
+        }
+        return null;
+    }
+    $(window).resize(function (){
+        treeRepresentation.visualize();
+    });
+    treeRepresentation.updateData(tree_nodes);
+    {% endif %}
+    {% endif %}
+
+
+</script>
+
+</html>

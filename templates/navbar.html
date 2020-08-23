@@ -1,0 +1,28 @@
+<nav class="navbar sticky-top navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                {% for link in navbar %}
+                {% if 'children' in link %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link{% if link.active %} active{% endif %} dropdown-toggle" href="#" id="{{ link.name }}" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ link.label }}</a>
+                    <ul class="dropdown-menu bg-dark" aria-labelledby="{{ link.name }}">
+                        {% for child in link.children %}
+                            <li><a class="dropdown-item{% if child.active %} active{% endif %}" href="{{ child.url }}" id="{{ child.name }}">{{ child.label }}{% if child.active %} <span class="sr-only">(current)</span>{% endif %}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link{% if link.active %} active{% endif %}" href="{{ link.url }}" id="{{ link.name }}">{{ link.label }}{% if child.active %} <span class="sr-only">(current)</span>{% endif %}</a>
+                </li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,23 @@
+<div class="my-5" id="accordion">
+    {% for topic in topics_presentation %}
+    <div class="card">
+        <div class="card-header p-0 card-content-switch" id="heading{{ topic.0.0 }}">
+            <a data-toggle="collapse" href="#collapse{{ topic.0.0}}" role="button" aria-expanded="false"
+               aria-controls="collapse{{topic.0.0}}">
+                <h5 class="mb-0 p-3 text-white">Topic #{{topic.0.0}}</h5>
+            </a>
+        </div>
+
+        <div id="collapse{{topic.0.0}}" class="collapse" aria-labelledby="heading{{topic.0.0}}"
+             data-parent="#accordion">
+            <div class="card-body">
+                <ol>
+                    {% for token in topic.0.2 %}
+                    <li>Λέξη: '{{token.0}}' με συμμετοχή '{{token.1}}'</li>
+                    {% endfor %}
+                </ol>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>

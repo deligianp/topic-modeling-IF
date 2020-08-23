@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <title>Topic analysis on existing text</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% include 'init_bootstrap.html' %}
+    {% include 'init_chart.html' %}
+    {% include 'init_js.html' %}
+    {% include 'init_css.html' %}
+</head>
+
+<body>
+{% include "navbar.html" %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12 mh-50 overflow-auto">
+            {% include 'e_text_info.html' with article_info=article %}
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-12">
+            <div id="topics-container-0" class="row d-none">
+                <div class="col-12">
+                    <h5 class="text-center" id="topics-title-0"></h5>
+                    <canvas id="topics-chart-0"></canvas>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div id="topics-loader-0" class="d-none">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    $(document).ready(function () {
+
+        $.ajax({
+            url: "ajax/document-topics/",
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            method: "post",
+            beforeSend: function (a, b) {
+                $("#topics-loader-0").removeClass("d-none")
+                    .addClass("col-2");
+                renderHorizontalLoadingNotification("topics-loader-0","{% static 'thesis_ui/img/loading-primary-horizontal.gif' %}");
+            },
+            success: function (data, status, jqXHR) {
+                $("#topics-loader-0").removeClass("col-2");
+                if (data.hasOwnProperty("error")) {
+                    renderErrorNotification("topics-loader-0",data.error.title, data.error.message);
+                } else if (data.hasOwnProperty("result")) {
+                    $("#topics-loader-0").empty()
+                        .addClass("d-none");
+                    $("#topics-container-0").removeClass("d-none");
+                    let colorPalette=colorTints("#007bff",data.result.length-1);
+                    let articleTopicPieChart=new ArticleTopicsPieChart("topics-chart-0","/topics/topic-",colorPalette);
+                    articleTopicPieChart.render(data.result);
+                    $("#topics-title-0").html("Top "+data.result.length+" topics distribution");
+                    renderTopicLinks("article-table", articleTopicPieChart.links.slice(0,-1), articleTopicPieChart.labels.slice(0,-1))
+                }
+            },
+            statusCode: {
+                422: function (data) {
+                    $("#topics-loader-0").removeClass("col-2");
+                    let response = data.responseJSON;
+                    if (response.hasOwnProperty("error")) {
+                        renderErrorNotification("topics-loader-0",response.error.title, response.error.message);
+                    }
+                },
+                500: function (data) {
+                    $("#topics-loader-0").removeClass("col-2");
+                    renderErrorNotification("topics-loader-0","Error", "An error occured while analyzing " +
+                            "the document to topics");
+                }
+            }
+        });
+    });
+
+</script>
+</html>

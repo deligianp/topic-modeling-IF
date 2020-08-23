@@ -1,0 +1,38 @@
+<script>
+    var myChart=document.getElementById('topic_distribution_pie_chart').getContext('2d')
+
+    var topicDistributionChart=new Chart(myChart, {
+        type:'pie',
+        data:{
+            labels:[{% for topic in topics_presentation %}'Topic {{ topic.0.0 }}',{% endfor %}'Rest of topics'],
+            datasets:[{
+                label:'Topic distribution',
+                data:[
+                    {% for topic in topics_presentation %}
+                    {{ topic.0.1 }},
+                    {% endfor %}
+                    {{ rest_of_topics }}
+                ],
+                backgroundColor:[
+                {% for topic in topics_presentation %}
+                '{{ topic.1 }}',
+                {% endfor %}
+                '#C3C3C3'
+            ]
+            }]
+        },
+        options:{
+            title:{
+                display:true,
+                text:'Κατανομή των topics μέσα στο κείμενο.',
+                fontSize:18,
+                fontColor:'black'
+            },
+            legend:{
+                position:'right'
+            }
+        }
+    })
+
+
+</script>

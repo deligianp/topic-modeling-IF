@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search for articles</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% include 'init_bootstrap.html' %}
+    {% include 'init_js.html' %}
+    {% include 'init_css.html' %}
+</head>
+<body>
+{% include 'navbar.html' %}
+<div class="container">
+    {% include 'search_results.html' %}
+</div>
+</body>
+<script>
+    $(document).ready(function () {
+        let getSearchContext = function () {
+            if ($("#id_search_context_0").is(":checked")) {
+                return 0;
+            } else {
+                return 1;
+            }
+        };
+
+        $("#id_search_context_0").on("change", (event) => {
+            $("#id_search_field").attr("placeholder", getSearchContext() === 0 ? "Search on article content" : "Search on article topics");
+        });
+        $("#id_search_context_1").on("change", (event) => {
+            $("#id_search_field").attr("placeholder", getSearchContext() === 0 ? "Search on article content" : "Search on article topics");
+        });
+        $("#id_search_field").attr("placeholder", getSearchContext() === 0 ? "Search on article content" : "Search on article topics");
+
+        // Assign modal loading render when form submits
+        $("#search-form").submit(function () {
+            $("#search-form input").blur();
+            $modalDiv = $(document.createElement("div"))
+                .addClass("row")
+                .append($(document.createElement("div"))
+                    .addClass("col-12")
+                    .append($(document.createElement("div"))
+                        .addClass("row")
+                        .addClass("justify-content-center")
+                        .append($(document.createElement("div"))
+                            .addClass("col-6")
+                            .append($(document.createElement("img"))
+                                .attr("width", "100%")
+                                .attr("height", "auto")
+                                .attr("src", "{% static 'thesis_ui/img/loading.gif' %}")
+                                .css("display", "block")
+                            )
+                        )
+                    )
+                    .append($(document.createElement("div"))
+                        .addClass("row")
+                        .append($(document.createElement("div"))
+                            .addClass("col-12")
+                            .addClass("text-center")
+                            .addClass("text-white")
+                            .append($(document.createElement("h5"))
+                                .text("Searching")
+                            )
+                        )
+                    )
+                );
+            spawnWindowModal($modalDiv);
+        });
+
+
+    })
+</script>
+</html>

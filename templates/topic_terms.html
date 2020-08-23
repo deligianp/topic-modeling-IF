@@ -1,0 +1,11 @@
+{% if topic_terms %}
+    <table class="table table-striped">
+    {% for topic_term in topic_terms %}
+        <tr>
+            <th scope="row">{{ forloop.counter }}</th>
+            <td>{{ topic_term.term }}</td>
+            <td>{{ topic_term.value }}%</td>
+        </tr>
+    {% endfor %}
+    </table>
+{% endif %}

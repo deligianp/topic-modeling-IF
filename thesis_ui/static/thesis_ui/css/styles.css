@@ -1,0 +1,102 @@
+:root{
+	--text-background: #afc2d6;
+
+	--primary-first:  #007bff;
+	--primary-first-hover: #004C9E;
+	--primary-second: #97c9ff;
+
+	--secondary-first: #7f00ff;
+	--secondary-first-hover: #4c0099;
+	--secondary-second: #b27fe6;
+}
+
+.search-form {
+	margin-top: 40px;
+}
+
+.scrollable-container {
+	overflow-y: scroll;
+}
+
+.text-container {
+	height: 30vh;
+	background-color: var(--text-background)
+}
+
+.primary-accordion .card-content-switch{
+	background-color: var(--primary-first)
+}
+
+.primary-accordion .card-content-switch:hover{
+	background-color: var(--primary-first-hover)
+}
+
+.secondary-accordion .card-content-switch{
+	background-color: var(--secondary-first)
+}
+
+.secondary-accordion .card-content-switch:hover{
+	background-color: var(--secondary-first-hover)
+}
+
+.card-content-switch>a{
+	text-decoration: none	!important
+}
+
+/*nav .dropdown-menu {*/
+/*	background-color: black;*/
+/*}*/
+
+.dropdown-menu .dropdown-item {
+	color: white
+}
+
+.dropdown-item:hover {
+	background-color: white;
+	color: black
+}
+
+.dropdown-item.active {
+	background-color: #23272b;
+}
+
+.dropdown-item.active:hover {
+	background-color: white;
+	color: black
+}
+
+/* Remove highlight of form text fields other input elements while being focused(clicked) */
+.form-control:focus button{
+    border-color: #cccccc;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+.text-info-table th {
+	width:10%;
+}
+
+.text-info-table .text-row td {
+	display:block;
+	max-height: 300px;
+	overflow-y: auto;
+	padding: 0px 10px;
+}
+
+.spoiler-toggle:after {
+	content:"";
+	vertical-align: .15em;
+	display: inline-block;
+	border-top: .3em solid;
+	border-left: .3em solid transparent;
+	border-right: .3em solid transparent;
+	border-bottom: 0;
+}
+
+.spoiler-toggle:not(.collapsed) {
+	transform: rotate(180deg);
+}
+
+.task-progress-bar-container {
+	height:2px;
+}
