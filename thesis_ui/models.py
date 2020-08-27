@@ -12,10 +12,9 @@ import psycopg2
 class LdaModel(models.Model):
     name = models.CharField(max_length=30, unique=True)
     is_main = models.BooleanField(verbose_name="This LDA model is the main model")
-    path = models.FilePathField(verbose_name="Model location", path=CONFIG_VALUES["RESOURCES_PATH"],
-                                match=CONFIG_VALUES["LDA_MODEL_FILE_EXTENSION"],
+    path = models.FilePathField(verbose_name="Model location",
                                 recursive=True,
-                                unique=True)  # TODO load?
+                                unique=True)
     description = models.CharField(max_length=50)
     # number_of_topics = models.PositiveIntegerField(validators=(MinValueValidator(1),))
     # number_of_terms = models.PositiveIntegerField(validators=(MinValueValidator(1),))
