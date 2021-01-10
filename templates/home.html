@@ -20,7 +20,42 @@
 {% include "navbar.html" %}
 
 <div class="container">
-    {% include "text_box.html" %}
+    <div class="row scrollable-container text-container my-5">
+        <div class="col-12">
+            <h2>Topic Model Visualization Application</h2>
+            <p>
+                The web application uses a basic LDA model as the model of reference. The system supports the storage of
+                    many LDA models, but only one LDA is configured with the responsibility of performing topic analysis.
+                    This policy aims to automatically schedule topic analysis over each stored article and resolve any
+                    ambiguity issues that arise while selecting the model that will be used for topic analysis.
+            </p>
+            <p>
+                <ul class="pl-4 list-unstyled">
+                    <li>
+                    {% if main_model %}
+                        <h4 class="font-weight-bold">Current main LDA model: {{ main_model.name }}</h4>
+                        {% if main_model.training_context %}
+                        <ul class="list-unstyled">
+                            <li>
+                                {{ main_model.training_context }}
+                            </li>
+                        </ul>
+                        {% endif %}
+                    {% else %}
+                        <span class="font-weight-bold">Currently, no LDA model has been set as the main LDA model</span>
+                    {% endif %}
+                    </li>
+                </ul>
+            </p>
+            <p>
+                The proper functionality of the interface depends on the existence of texts, that have been topically
+                    analyzed by the application's main LDA model. These texts, also used in other renown topic model
+                    visualization applications, offer valuable insights about the quality of the trained model. Apart from
+                    the stored texts, the application can use the LDA model to analyze texts that have not been used
+                    during training, thus further expanding the potential of evaluation of the model's quality.
+            </p>
+        </div>
+    </div>
 </div>
 </body>
 

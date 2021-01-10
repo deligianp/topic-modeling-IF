@@ -6,22 +6,41 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
-                {% for link in navbar %}
-                {% if 'children' in link %}
+                <li class="nav-item">
+                    <a class="nav-link{% if active_link == "home" %} active{% endif %}" href="{% url "home" %}" id="home">Home</a>
+                </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link{% if link.active %} active{% endif %} dropdown-toggle" href="#" id="{{ link.name }}" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ link.label }}</a>
-                    <ul class="dropdown-menu bg-dark" aria-labelledby="{{ link.name }}">
-                        {% for child in link.children %}
-                            <li><a class="dropdown-item{% if child.active %} active{% endif %}" href="{{ child.url }}" id="{{ child.name }}">{{ child.label }}{% if child.active %} <span class="sr-only">(current)</span>{% endif %}</a></li>
-                        {% endfor %}
+                    <a class="nav-link{% if active_link == "search_articles" or active_link == "text_topics" %} active{% endif %} dropdown-toggle" href="#" id="topics-nav-dropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Topics</a>
+                    <ul class="dropdown-menu bg-dark" aria-labelledby="topics-nav-dropdown">
+                        <li><a class="dropdown-item{% if active_link == "search_articles" %} active{% endif %}" href="{% url "search_articles" %}" id="topics-nav-search-articles">Topics of existing articles{% if active_link == "search_articles" %} <span class="sr-only">(current)</span>{% endif %}</a></li>
+                        <li><a class="dropdown-item{% if active_link == "text_topics" %} active{% endif %}" href="{% url "text_topics" %}" id="topics-nav-text-topics">Topics of new text{% if active_link == "text_topics" %} <span class="sr-only">(current)</span>{% endif %}</a></li>
                     </ul>
                 </li>
-                {% else %}
-                <li class="nav-item">
-                    <a class="nav-link{% if link.active %} active{% endif %}" href="{{ link.url }}" id="{{ link.name }}">{{ link.label }}{% if child.active %} <span class="sr-only">(current)</span>{% endif %}</a>
+{#                {% for link in navbar %}#}
+{#                {% if 'children' in link %}#}
+{#                <li class="nav-item dropdown">#}
+{#                    <a class="nav-link{% if link.active %} active{% endif %} dropdown-toggle" href="#" id="{{ link.name }}" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ link.label }}</a>#}
+{#                    <ul class="dropdown-menu bg-dark" aria-labelledby="{{ link.name }}">#}
+{#                        {% for child in link.children %}#}
+{#                            <li><a class="dropdown-item{% if child.active %} active{% endif %}" href="{{ child.url }}" id="{{ child.name }}">{{ child.label }}{% if child.active %} <span class="sr-only">(current)</span>{% endif %}</a></li>#}
+{#                        {% endfor %}#}
+{#                    </ul>#}
+{#                </li>#}
+{#                {% else %}#}
+{#                <li class="nav-item">#}
+{#                    <a class="nav-link{% if link.active %} active{% endif %}" href="{{ link.url }}" id="{{ link.name }}">{{ link.label }}{% if child.active %} <span class="sr-only">(current)</span>{% endif %}</a>#}
+{#                </li>#}
+{#                {% endif %}#}
+{#                {% endfor %}#}
+            </ul>
+        </div>
+        <div class="collapse navbar-collapse" id="navbarAdministration">
+            <ul class="navbar-nav ml-auto">
+                {% if request.user.is_superuser %}
+                <li class="nav-item bg-primary font-weight-bold">
+                    <a class="nav-link" target="_blank" href="{% url "admin_tasks:index" %}" id="administation">Administration</a>
                 </li>
                 {% endif %}
-                {% endfor %}
             </ul>
         </div>
     </div>

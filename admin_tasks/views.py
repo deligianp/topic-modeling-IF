@@ -226,6 +226,7 @@ def update_model(request, *args, **kwargs):
         template_context["form_heading"] = "Update model {}, loaded from \"{}\"".format(
             target_model.description, target_model.path
         )
+        template_context["task_form"] = task_form
         return render(request, 'admin_tasks/task_form.html', context=template_context)
     else:
         return redirect('/admin-tasks/list-models/')

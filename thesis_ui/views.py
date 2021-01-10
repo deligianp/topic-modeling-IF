@@ -20,16 +20,15 @@ from .forms import SearchForm, NewArticleForm
 
 # Create your views here.
 def home(request):
-    navbar_json = generate_navbar(config.NAV_BAR_ADDRESSES, {"home"})
     template_context = dict()
-    template_context["data"] = {
-        "text": {
-            "text_title": "Placeholder title",
-            "text_meta": [],
-            "text_content": "<p>This is a placeholder text that is supposed to contain information about the interface"
+    try:
+        main_model = models.LdaModel.objects.get(is_main=True)
+        template_context["main_model"] = {
+            "name": main_model.name,
+            "training_context": main_model.training_context if main_model.training_context != "" else None
         }
-    }
-    template_context["navbar"] = navbar_json
+    except models.LdaModel.DoesNotExist:
+        pass
     return render(context=template_context, template_name='home.html', request=request)
 
 
